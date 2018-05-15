@@ -37,7 +37,7 @@ void setup() {
   pinMode(Pause, INPUT_PULLUP);
   pinMode(Reset, INPUT_PULLUP);
   
-  Serial.begin(250000);
+  Serial.begin(250000); // Set up serial for debugging
   while (! Serial);
   
   SyringeDiameter = 1.59; // inner diameter of syringe in cm
@@ -50,12 +50,13 @@ void setup() {
   
   }
 
-  int TakeStep(int DirPinX, int &DirX, int StepPinX, float &StepsX, float DelayTimeX, unsigned long &TimeX){
+  // function to tell X stepper motor to take a step
+  int TakeStep(int DirPinX, int &DirX, int StepPinX, float &StepsX, float DelayTimeX, unsigned long &TimeX){ 
     if ((Time - TimeX) >= DelayTimeX && TotalSteps > StepsX){
          digitalWrite(DirPinX, DirX);
-         delay(0.05);
+         delay(0.05); // delay for the stepper controller to register
          digitalWrite(StepPinX, HIGH);
-         delay(0.100);
+         delay(0.100); // delay for the stepper controller to register
          digitalWrite(StepPinX, LOW);
          StepsX = StepsX + 1;
          TimeX = millis();
@@ -64,6 +65,7 @@ void setup() {
   }
 
 
+// calculating the delay between steps for a given flow rate / syringe diameter
   float DelayTimes(){
     if (DirA == 0){
       DelayTimeA = DelayTime;
@@ -81,7 +83,7 @@ void setup() {
     }
   }
 
-    float DelayTimes2(){
+    float DelayTimes2(){ // smoothly transitions the pumping rate of the two syringe pumps to avoid major spikes or drops in flow rate. 
     if (DirA == 0){
       DelayTimeA = SyrArea * 9.454 / (0.95 * Rate - (Time - TimeInitial) * Rate * 0.9 / (TotalSteps * DelayTime * (1 - PumpFrac))) - 0.15;
     }
@@ -98,6 +100,8 @@ void setup() {
 
  
 void loop() {
+
+  // controls the pause and reset functionality
   while (digitalRead(Pause) == LOW){
          Time = millis();
          digitalWrite(StepPinA, LOW);
@@ -110,6 +114,8 @@ void loop() {
                 delay(500);         
          }
   }
+
+  //Reverse is defined with respect to stepper motor A
   
   if (Reverse == 0){
     DirA = 0;
@@ -123,6 +129,7 @@ void loop() {
     digitalWrite(DirPinA, DirA);
     digitalWrite(DirPinB, DirB);
   }
+
   
   if (Stage1 == 1){
     if (DirA == 0 && (0.9*PumpFrac * TotalSteps) <= StepsA){
@@ -156,22 +163,22 @@ void loop() {
        DirB = 1;
        Flip = 0;
     }
-    Serial.print("Stage1 A:B, ");
-    Serial.print(Time);
-    Serial.print(" , ");
-    Serial.print(StepsA);
-    Serial.print(" , ");
-    Serial.print(StepsB);
-    Serial.print(" , ");
-    Serial.print(DelayTimeA);
-    Serial.print(" , ");
-    Serial.print(DelayTimeB);
-    Serial.print(" , ");
-    Serial.print(Reverse);
-    Serial.print(" , ");
-    Serial.print(Stage1);  
-    Serial.print(" , ");
-    Serial.println(TotalSteps); 
+//    Serial.print("Stage1 A:B, ");
+//    Serial.print(Time);
+//    Serial.print(" , ");
+//    Serial.print(StepsA);
+//    Serial.print(" , ");
+//    Serial.print(StepsB);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeA);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeB);
+//    Serial.print(" , ");
+//    Serial.print(Reverse);
+//    Serial.print(" , ");
+//    Serial.print(Stage1);  
+//    Serial.print(" , ");
+//    Serial.println(TotalSteps); 
   }
 
   TimeC = millis();
@@ -196,22 +203,22 @@ void loop() {
           break;
       }
       }
-    Serial.print("Stage2 A:B, ");
-    Serial.print(Time);
-    Serial.print(" , ");
-    Serial.print(StepsA);
-    Serial.print(" , ");
-    Serial.print(StepsB);
-    Serial.print(" , ");
-    Serial.print(DelayTimeA);
-    Serial.print(" , ");
-    Serial.print(DelayTimeB);
-    Serial.print(" , ");
-    Serial.print(TimeC - TimeInitial);
-    Serial.print(" , ");
-    Serial.print((TotalSteps * (DelayTime + 0.150) * (1 - PumpFrac)));  
-    Serial.print(" , ");
-    Serial.println((TimeC - TimeInitial)); 
+//    Serial.print("Stage2 A:B, ");
+//    Serial.print(Time);
+//    Serial.print(" , ");
+//    Serial.print(StepsA);
+//    Serial.print(" , ");
+//    Serial.print(StepsB);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeA);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeB);
+//    Serial.print(" , ");
+//    Serial.print(TimeC - TimeInitial);
+//    Serial.print(" , ");
+//    Serial.print((TotalSteps * (DelayTime + 0.150) * (1 - PumpFrac)));  
+//    Serial.print(" , ");
+//    Serial.println((TimeC - TimeInitial)); 
   }
 
   TimeC = millis();
@@ -222,7 +229,7 @@ void loop() {
     TakeStep(DirPinA, DirB, StepPinA, StepsA, DelayTimeA, TimeA);
     Time = millis();
     TakeStep(DirPinB, DirB, StepPinB, StepsB, DelayTimeB, TimeB);
-    while ((TotalSteps * (DelayTime + 0.150) * (1 - PumpFrac)) - (TimeC - TimeInitial)){
+    while ((TotalSteps * (DelayTime + 0.150) * (1 - PumpFrac)) - (TimeC - TimeInitial)){ // Reverses the pump directions
       StepsB = 0;
       Stage1 = 1;
       if (Reverse == 0){
@@ -236,22 +243,22 @@ void loop() {
           break;
       }
       }
-    Serial.print("Stage3 A:B, ");
-    Serial.print(Time);
-    Serial.print(" , ");
-    Serial.print(StepsA);
-    Serial.print(" , ");
-    Serial.print(StepsB);
-    Serial.print(" , ");
-    Serial.print(DelayTimeA);
-    Serial.print(" , ");
-    Serial.print(DelayTimeB);
-    Serial.print(" , ");
-    Serial.print(TimeC - TimeInitial);
-    Serial.print(" , ");
-    Serial.print(Stage1);  
-    Serial.print(" , ");
-    Serial.println(TotalSteps); 
+//    Serial.print("Stage3 A:B, ");
+//    Serial.print(Time);
+//    Serial.print(" , ");
+//    Serial.print(StepsA);
+//    Serial.print(" , ");
+//    Serial.print(StepsB);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeA);
+//    Serial.print(" , ");
+//    Serial.print(DelayTimeB);
+//    Serial.print(" , ");
+//    Serial.print(TimeC - TimeInitial);
+//    Serial.print(" , ");
+//    Serial.print(Stage1);  
+//    Serial.print(" , ");
+//    Serial.println(TotalSteps); 
   }
   
 }
